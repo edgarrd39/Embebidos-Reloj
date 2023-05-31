@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceRoot}",
+            "executable": "./build/bin/plantilla-embebidos.elf",
+            "name": "Debug (edu-ciaa-nxp)",
+            "configFiles": [
+                "./muju/external/base/mcu/lpc4337-m4/openocd/openocd.cfg"
+            ],
+            // "svdFile": "./external/base/mcu/lpc4337-m4/openocd/LPC43xx_43Sxx.svd",
+        }
+    ]
+
+}
