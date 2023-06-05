@@ -34,11 +34,11 @@ SPDX-License-Identifier: MIT
 /* === Macros definitions ====================================================================== */
 
 #ifndef OUTPUT_INSTANCES
-#define OUTPUT_INSTANCES 4
+#define OUTPUT_INSTANCES 16
 #endif
 
 #ifndef INPUT_INSTANCES
-#define INPUT_INSTANCES 4
+#define INPUT_INSTANCES 16
 #endif
 
 /* === Private data type declarations ========================================================== */

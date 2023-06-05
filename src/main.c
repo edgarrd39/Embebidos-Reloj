@@ -43,6 +43,7 @@
 #include "bsp.h"
 #include "chip.h"
 #include "digital.h"
+#include "poncho.h"
 #include <stdbool.h>
 
 /* === Macros definitions ====================================================================== */
@@ -62,16 +63,20 @@
 /* === Public function implementation ========================================================= */
 
 int main(void) {
-    int divisor = 0;
+    // int divisor = 0;
 
     board_t board = BoardCreate();
 
     while (true) {
-        divisor++;
-        if (divisor == 10) {
-            divisor = 0;
+
+        if (DigitalInputHasActivated(board->cancel))
             DigitalOutputToggle(board->buzzer);
-        }
+
+        // divisor++;
+        // if (divisor == 10) {
+        //     divisor = 0;
+        //
+        // }
 
         for (int index = 0; index < 100; index++) {
             for (int delay = 0; delay < 25000; delay++) {

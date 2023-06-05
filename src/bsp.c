@@ -58,17 +58,23 @@ board_t BoardCreate(void) {
     board.buzzer = DigitalOutputCreate(BUZZER_GPIO, BUZZER_PIN, false);
 
     /******************/
-    Chip_SCU_PinMuxSet(TEC_1_PORT, TEC_1_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | TEC_1_FUNC);
-    board.set_time = DigitalInputCreate(TEC_1_GPIO, TEC_1_BIT, true);
+    Chip_SCU_PinMuxSet(KEY_F1_PORT, KEY_F1_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | KEY_F1_FUNC);
+    board.set_time = DigitalInputCreate(KEY_F1_GPIO, KEY_F1_BIT, true);
 
-    Chip_SCU_PinMuxSet(TEC_2_PORT, TEC_2_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | TEC_2_FUNC);
-    board.set_alarm = DigitalInputCreate(TEC_2_GPIO, TEC_2_BIT, true);
+    Chip_SCU_PinMuxSet(KEY_F2_PORT, KEY_F2_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | KEY_F2_FUNC);
+    board.set_alarm = DigitalInputCreate(KEY_F2_GPIO, KEY_F2_BIT, true);
 
-    Chip_SCU_PinMuxSet(TEC_3_PORT, TEC_3_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | TEC_3_FUNC);
-    board.increment = DigitalInputCreate(TEC_3_GPIO, TEC_3_BIT, true);
+    Chip_SCU_PinMuxSet(KEY_F3_PORT, KEY_F3_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | KEY_F3_FUNC);
+    board.increment = DigitalInputCreate(KEY_F3_GPIO, KEY_F3_BIT, true);
 
-    Chip_SCU_PinMuxSet(TEC_4_PORT, TEC_4_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | TEC_4_FUNC);
-    board.decrement = DigitalInputCreate(TEC_4_GPIO, TEC_4_BIT, true);
+    Chip_SCU_PinMuxSet(KEY_F4_PORT, KEY_F4_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | KEY_F4_FUNC);
+    board.decrement = DigitalInputCreate(KEY_F4_GPIO, KEY_F4_BIT, true);
+
+    Chip_SCU_PinMuxSet(KEY_ACCEPT_PORT, KEY_ACCEPT_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | KEY_ACCEPT_FUNC);
+    board.accept = DigitalInputCreate(KEY_ACCEPT_GPIO, KEY_ACCEPT_BIT, true);
+
+    Chip_SCU_PinMuxSet(KEY_CANCEL_PORT, KEY_CANCEL_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | KEY_CANCEL_FUNC);
+    board.cancel = DigitalInputCreate(KEY_CANCEL_GPIO, KEY_CANCEL_BIT, true);
     return &board;
 }
 /* === End of documentation ==================================================================== */
