@@ -63,25 +63,19 @@
 /* === Public function implementation ========================================================= */
 
 int main(void) {
-    // int divisor = 0;
 
     board_t board = BoardCreate();
 
+    uint8_t numero[4] = {1, 2, 3, 4}; // se muestra al reves en la pantalla
+
+    DisplayWriteBCD(board->display, numero, sizeof(numero));
+
     while (true) {
 
-        if (DigitalInputHasActivated(board->cancel))
-            DigitalOutputToggle(board->buzzer);
+        DisplayRefresh(board->display);
 
-        // divisor++;
-        // if (divisor == 10) {
-        //     divisor = 0;
-        //
-        // }
-
-        for (int index = 0; index < 100; index++) {
-            for (int delay = 0; delay < 25000; delay++) {
-                __asm("NOP");
-            }
+        for (int delay = 0; delay < 25000; delay++) {
+            __asm("NOP");
         }
     }
 }
