@@ -67,27 +67,10 @@ int main(void) {
     board_t board = BoardCreate();
 
     while (true) {
-        if (DigitalInputGetState(board->tecla_1)) {
-            DigitalOutputActivate(board->led_azul);
-        } else {
-            DigitalOutputDesactivate(board->led_azul);
-        }
-
-        if (DigitalInputHasActivated(board->tecla_2)) {
-            DigitalOutputToggle(board->led_rojo);
-        }
-
-        if (DigitalInputHasActivated(board->tecla_3)) {
-            DigitalOutputActivate(board->led_amarillo);
-        }
-        if (DigitalInputHasActivated(board->tecla_4)) {
-            DigitalOutputDesactivate(board->led_amarillo);
-        }
-
         divisor++;
         if (divisor == 10) {
             divisor = 0;
-            DigitalOutputToggle(board->led_verde);
+            DigitalOutputToggle(board->buzzer);
         }
 
         for (int index = 0; index < 100; index++) {

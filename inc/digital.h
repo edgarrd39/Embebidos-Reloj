@@ -62,7 +62,6 @@ typedef struct digital_input_s * digital_input_t;
  * @param inverted  Indica si se esta usando logica inversa
  * @return digital_output_t     Puntero al descriptor de la salida creada
  */
-
 digital_output_t DigitalOutputCreate(uint8_t port, uint8_t pin, bool inverted);
 
 /**
