@@ -31,7 +31,8 @@ SPDX-License-Identifier: MIT
 
 /* === Headers files inclusions ================================================================ */
 
-#include <digital.h>
+#include "digital.h"
+#include "pantalla.h"
 /* === Cabecera C++ ============================================================================ */
 
 #ifdef __cplusplus
@@ -49,6 +50,7 @@ typedef struct board_s {
     digital_input_t increment;
     digital_input_t accept;
     digital_input_t cancel;
+    display_t display;
 } const * const board_t;
 /* === Public variable declarations ============================================================ */
 

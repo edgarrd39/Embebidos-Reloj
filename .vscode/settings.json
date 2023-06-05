@@ -22,6 +22,7 @@
     "files.associations": {
         "digital.h": "c",
         "chip.h": "c",
-        "bsp.h": "c"
+        "bsp.h": "c",
+        "ciaa.h": "c"
     }
 }
