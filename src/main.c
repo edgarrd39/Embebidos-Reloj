@@ -75,9 +75,13 @@ int main(void) {
 
         DisplayRefresh(board->display);
 
-        if (DigitalInputHasDeactivated(board->accept)) {
+        if (DigitalInputHasDeactivated(board->accept)) { // presionar el bt de aceptar para que cambie de numero
             DisplayRefresh(board->display);
             DisplayWriteBCD(board->display, numero2, sizeof(numero2));
+        }
+        if (DigitalInputHasDeactivated(board->cancel)) { // presionar el bt de aceptar para que cambie de numero
+            DisplayRefresh(board->display);
+            DisplayWriteBCD(board->display, numero, sizeof(numero));
         }
         for (int delay = 0; delay < 25000; delay++) {
             __asm("NOP");
