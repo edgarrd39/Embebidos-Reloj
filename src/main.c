@@ -66,7 +66,8 @@ int main(void) {
 
     board_t board = BoardCreate();
 
-    uint8_t numero[4] = {1, 2, 3, 4}; // se muestra al reves en la pantalla
+    uint8_t numero[4] = {1, 0, 9, 8};
+    uint8_t numero2[4] = {1, 2, 3, 4};
 
     DisplayWriteBCD(board->display, numero, sizeof(numero));
 
@@ -74,6 +75,10 @@ int main(void) {
 
         DisplayRefresh(board->display);
 
+        if (DigitalInputHasDeactivated(board->accept)) {
+            DisplayRefresh(board->display);
+            DisplayWriteBCD(board->display, numero2, sizeof(numero2));
+        }
         for (int delay = 0; delay < 25000; delay++) {
             __asm("NOP");
         }

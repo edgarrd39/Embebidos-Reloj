@@ -48,16 +48,16 @@ struct display_s {
 /* === Private variable declarations =========================================================== */
 
 static const uint8_t IMAGES[] = {
-    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_E | SEGMENT_F,             //!< 0
-    SEGMENT_B | SEGMENT_C,                                                 //!< 1
-    SEGMENT_A | SEGMENT_B | SEGMENT_D | SEGMENT_E | SEGMENT_G,             //!< 2
-    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_G,             //!< 3
-    SEGMENT_B | SEGMENT_C | SEGMENT_F | SEGMENT_G,                         //!< 4
-    SEGMENT_A | SEGMENT_C | SEGMENT_D | SEGMENT_F | SEGMENT_G,             //!< 5
-    SEGMENT_A | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F | SEGMENT_G, //!< 6
-    SEGMENT_A | SEGMENT_B | SEGMENT_C,                                     //!< 7
-    SEGMENT_D | SEGMENT_E | SEGMENT_F | SEGMENT_G,                         //!< 8
-    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_E | SEGMENT_G              //!< 9
+    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F,             //!< 0
+    SEGMENT_B | SEGMENT_C,                                                             //!< 1
+    SEGMENT_A | SEGMENT_B | SEGMENT_D | SEGMENT_E | SEGMENT_G,                         //!< 2
+    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_G,                         //!< 3
+    SEGMENT_B | SEGMENT_C | SEGMENT_F | SEGMENT_G,                                     //!< 4
+    SEGMENT_A | SEGMENT_C | SEGMENT_D | SEGMENT_F | SEGMENT_G,                         //!< 5
+    SEGMENT_A | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F | SEGMENT_G,             //!< 6
+    SEGMENT_A | SEGMENT_B | SEGMENT_C,                                                 //!< 7
+    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_E | SEGMENT_F | SEGMENT_G, //!< 8
+    SEGMENT_A | SEGMENT_B | SEGMENT_C | SEGMENT_D | SEGMENT_F | SEGMENT_G              //!< 9
 };
 /* === Private function declarations =========================================================== */
 

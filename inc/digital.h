@@ -131,7 +131,7 @@ bool DigitalInputHasActivated(digital_input_t input);
  * @return true     La entrada tuvo desactivaciones desde la última llamada
  * @return false    La entrada no tuvo desactivaciones desde la ultima llamada
  */
-bool DigitalInputHasDesactivated(digital_input_t input);
+bool DigitalInputHasDeactivated(digital_input_t input);
 
 /* === End of documentation ==================================================================== */
 
