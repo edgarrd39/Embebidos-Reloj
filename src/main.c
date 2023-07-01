@@ -66,7 +66,7 @@ int main(void) {
 
     board_t board = BoardCreate();
 
-    uint8_t numero[4] = {1, 0, 9, 8};
+    uint8_t numero[4] = {9, 5, 0, 8};
     uint8_t numero2[4] = {1, 2, 3, 4};
 
     DisplayWriteBCD(board->display, numero, sizeof(numero));
@@ -75,11 +75,11 @@ int main(void) {
 
         DisplayRefresh(board->display);
 
-        if (DigitalInputHasDeactivated(board->accept)) { // presionar el bt de aceptar para que cambie de numero
+        if (DigitalInputHasActivated(board->accept)) { // presionar el bt de aceptar para que cambie de numero
             DisplayRefresh(board->display);
             DisplayWriteBCD(board->display, numero2, sizeof(numero2));
         }
-        if (DigitalInputHasDeactivated(board->cancel)) { // presionar el bt de aceptar para que cambie de numero
+        if (DigitalInputHasActivated(board->cancel)) { // presionar el bt de aceptar para que cambie de numero
             DisplayRefresh(board->display);
             DisplayWriteBCD(board->display, numero, sizeof(numero));
         }
