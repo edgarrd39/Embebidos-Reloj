@@ -44,6 +44,7 @@
 #include "chip.h"
 #include "digital.h"
 #include "poncho.h"
+#include "reloj.h"
 #include <stdbool.h>
 
 /* === Macros definitions ====================================================================== */
@@ -53,36 +54,41 @@
 /* === Private variable declarations =========================================================== */
 
 /* === Private function declarations =========================================================== */
-
+void ActivarAlarma(void);
 /* === Public variable definitions ============================================================= */
 
 /* === Private variable definitions ============================================================ */
 static board_t board;
+
+static clock_t reloj;
 /* === Private function implementation ========================================================= */
 
+void ActivarAlarma(void) {
+}
 /* === Public function implementation ========================================================= */
 
 int main(void) {
 
-    SisTick_Init(1000);
+    uint8_t hora[6];
+
+    reloj = ClockCreate(5, ActivarAlarma);
     board = BoardCreate();
 
-    uint8_t numero[4] = {5, 6, 7, 8};
-    uint8_t numero2[4] = {1, 2, 3, 4};
-    // DisplayWriteBCD(board->display, numero, sizeof(numero));
+    SisTick_Init(1000);
 
     while (true) {
 
         DisplayRefresh(board->display);
 
         if (DigitalInputHasActivated(board->accept)) { // presionar el bt de aceptar para que cambie de numero
-            // DisplayRefresh(board->display);
-            DisplayWriteBCD(board->display, numero, sizeof(numero));
         }
         if (DigitalInputHasActivated(board->cancel)) { // presionar el bt de aceptar para que cambie de numero
-            // DisplayRefresh(board->display);
-            DisplayWriteBCD(board->display, numero2, sizeof(numero2));
         }
+
+        ClockGetTime(reloj, hora, sizeof(hora));
+        __asm volatile("cpsid i");
+        DisplayWriteBCD(board->display, hora, sizeof(hora));
+        __asm volatile("cpsie i");
         // for (int delay = 0; delay < 25000; delay++) {
         //     __asm("NOP");
         // }
@@ -91,6 +97,7 @@ int main(void) {
 
 void SysTick_Handler(void) {
     DisplayRefresh(board->display);
+    ClockTick(reloj);
 }
 /* === End of documentation ==================================================================== */
 
