@@ -51,12 +51,14 @@ typedef struct board_s {
     digital_input_t accept;
     digital_input_t cancel;
     display_t display;
-} const * const board_t;
+} * board_t;
 /* === Public variable declarations ============================================================ */
 
 /* === Public function declarations ============================================================ */
 
 board_t BoardCreate(void);
+
+void SisTick_Init(uint16_t ticks);
 /* === End of documentation ==================================================================== */
 
 #ifdef __cplusplus

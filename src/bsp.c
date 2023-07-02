@@ -176,6 +176,19 @@ board_t BoardCreate(void) {
 
     return &board;
 }
+
+void SisTick_Init(uint16_t ticks) {
+    __asm volatile("cpsid i");
+
+    /* Activate  Systick*/
+    SystemCoreClockUpdate();
+    SysTick_Config(SystemCoreClock / ticks);
+
+    /*Update priority set by Systic_Config*/
+    NVIC_SetPriority(SysTick_IRQn, (1 << __NVIC_PRIO_BITS) - 1);
+
+    __asm volatile("cpsie i");
+}
 /* === End of documentation ==================================================================== */
 
 /** @} End of module definition for doxygen */

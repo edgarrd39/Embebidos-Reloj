@@ -57,38 +57,41 @@
 /* === Public variable definitions ============================================================= */
 
 /* === Private variable definitions ============================================================ */
-
+static board_t board;
 /* === Private function implementation ========================================================= */
 
 /* === Public function implementation ========================================================= */
 
 int main(void) {
 
-    board_t board = BoardCreate();
+    SisTick_Init(1000);
+    board = BoardCreate();
 
     uint8_t numero[4] = {5, 6, 7, 8};
     uint8_t numero2[4] = {1, 2, 3, 4};
-
-    DisplayWriteBCD(board->display, numero, sizeof(numero));
+    // DisplayWriteBCD(board->display, numero, sizeof(numero));
 
     while (true) {
 
         DisplayRefresh(board->display);
 
         if (DigitalInputHasActivated(board->accept)) { // presionar el bt de aceptar para que cambie de numero
-            DisplayRefresh(board->display);
-            DisplayWriteBCD(board->display, numero2, sizeof(numero2));
-        }
-        if (DigitalInputHasActivated(board->cancel)) { // presionar el bt de aceptar para que cambie de numero
-            DisplayRefresh(board->display);
+            // DisplayRefresh(board->display);
             DisplayWriteBCD(board->display, numero, sizeof(numero));
         }
-        for (int delay = 0; delay < 25000; delay++) {
-            __asm("NOP");
+        if (DigitalInputHasActivated(board->cancel)) { // presionar el bt de aceptar para que cambie de numero
+            // DisplayRefresh(board->display);
+            DisplayWriteBCD(board->display, numero2, sizeof(numero2));
         }
+        // for (int delay = 0; delay < 25000; delay++) {
+        //     __asm("NOP");
+        // }
     }
 }
 
+void SysTick_Handler(void) {
+    DisplayRefresh(board->display);
+}
 /* === End of documentation ==================================================================== */
 
 /** @} End of module definition for doxygen */
