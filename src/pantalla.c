@@ -42,6 +42,10 @@ SPDX-License-Identifier: MIT
 struct display_s {
     uint8_t digits;
     uint8_t active_digit;
+    uint8_t flashing_from;
+    uint8_t flashing_to;
+    uint8_t flashing_count;
+    uint8_t flashing_factor;
     uint8_t memory[DISPLAY_MAX_DIGITS];
     struct display_driver_s driver[1];
 };
@@ -84,6 +88,10 @@ display_t DisplayCreate(uint8_t digits, display_driver_t driver) {
     if (display) {
         display->digits = digits;
         display->active_digit = digits - 1;
+        display->flashing_from = 0;
+        display->flashing_to = 0;
+        display->flashing_count = 0;
+        display->flashing_factor = 0;
         memcpy(display->driver, driver, sizeof(display->driver));
         memset(display->memory, 0, sizeof(display->memory));
         display->driver->ScreenTurnOff();
@@ -101,10 +109,32 @@ void DisplayWriteBCD(display_t display, uint8_t * number, uint8_t size) {
 }
 
 void DisplayRefresh(display_t display) {
+    uint8_t segments;
+
     display->driver->ScreenTurnOff();
     display->active_digit = (display->active_digit + 1) % display->digits;
-    display->driver->SegmentsTurnOn(display->memory[display->active_digit]);
+
+    segments = display->memory[display->active_digit];
+    if (display->flashing_factor) {
+        if (display->active_digit == 0) {
+            display->flashing_count = (display->flashing_count + 1) % display->flashing_factor;
+        }
+        if ((display->active_digit >= display->flashing_from) && (display->active_digit <= display->flashing_to)) {
+            if (display->flashing_count > (display->flashing_factor / 2)) {
+                segments = 0;
+            }
+        }
+    }
+
+    display->driver->SegmentsTurnOn(segments);
     display->driver->DigitTurnOn(display->active_digit);
+}
+
+void DisplayFlashDigits(display_t display, uint8_t from, uint8_t to, uint16_t frecuency) {
+    display->flashing_count = 0;
+    display->flashing_factor = frecuency;
+    display->flashing_from = from;
+    display->flashing_to = to;
 }
 /* === End of documentation ==================================================================== */
 

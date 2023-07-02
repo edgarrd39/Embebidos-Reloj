@@ -70,28 +70,32 @@ void ActivarAlarma(void) {
 int main(void) {
 
     uint8_t hora[6];
-
-    reloj = ClockCreate(5, ActivarAlarma);
+    // uint8_t numero[4] = {5, 6, 7, 8};
+    reloj = ClockCreate(10, ActivarAlarma);
     board = BoardCreate();
 
     SisTick_Init(1000);
 
+    // DisplayWriteBCD(board->display, numero, sizeof(numero));
+    DisplayFlashDigits(board->display, 0, 3, 1000);
     while (true) {
 
         DisplayRefresh(board->display);
 
-        if (DigitalInputHasActivated(board->accept)) { // presionar el bt de aceptar para que cambie de numero
+        if (DigitalInputHasActivated(board->accept)) {
+            DisplayFlashDigits(board->display, 2, 3, 500);
         }
-        if (DigitalInputHasActivated(board->cancel)) { // presionar el bt de aceptar para que cambie de numero
+        if (DigitalInputHasActivated(board->cancel)) {
+            DisplayFlashDigits(board->display, 0, 3, 1000);
         }
 
         ClockGetTime(reloj, hora, sizeof(hora));
         __asm volatile("cpsid i");
         DisplayWriteBCD(board->display, hora, sizeof(hora));
         __asm volatile("cpsie i");
-        // for (int delay = 0; delay < 25000; delay++) {
-        //     __asm("NOP");
-        // }
+        for (int delay = 0; delay < 25000; delay++) {
+            __asm("NOP");
+        }
     }
 }
 
