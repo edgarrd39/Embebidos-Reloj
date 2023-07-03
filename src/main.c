@@ -68,12 +68,17 @@ typedef enum {
 void ActivarAlarma(void);
 /* === Public variable definitions ============================================================= */
 
-/* === Private variable definitions ============================================================ */
 static board_t board;
 
 static clock_t reloj;
 
 static modo_t modo;
+
+/* === Private variable definitions ============================================================ */
+
+static const uint8_t LIMITES_MINUTOS[] = {5, 9};
+static const uint8_t LIMITES_HORAS[] = {2, 3};
+
 /* === Private function implementation ========================================================= */
 
 void ActivarAlarma(void) {
@@ -110,6 +115,30 @@ void CambiarModo(modo_t valor) {
         break;
     default:
         break;
+    }
+}
+
+void IncrementarBCD(uint8_t numero[2], const uint8_t limite[2]) {
+    numero[1]++;
+    if (numero[1] > 9) {
+        numero[1] = 0;
+        numero[0]++;
+    }
+    if ((numero[0] > limite[0]) && (numero[1]) > limite[1]) {
+        numero[1] = 0;
+        numero[2] = 0;
+    }
+}
+
+void DecrementarBCD(uint8_t numero[2], const uint8_t limite[2]) {
+    numero[1]--;
+    if (numero[1] > 9) {
+        numero[1] = 0;
+        numero[0]--;
+    }
+    if ((numero[0] > limite[0]) && (numero[1]) > limite[1]) {
+        numero[1] = 0;
+        numero[2] = 0;
     }
 }
 /* === Public function implementation ========================================================= */
@@ -153,18 +182,18 @@ int main(void) {
 
         if (DigitalInputHasActivated(board->increment)) {
             if (modo == AJUSTANDO_MINUTOS_ACTUAL) {
-                entrada[3] = entrada[3] + 1;
+                IncrementarBCD(&entrada[2], LIMITES_MINUTOS);
             } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
-                entrada[1] = entrada[1] + 1;
+                IncrementarBCD(entrada, LIMITES_HORAS);
             }
             DisplayWriteBCD(board->display, entrada, sizeof(entrada));
         }
 
         if (DigitalInputHasActivated(board->decrement)) {
             if (modo == AJUSTANDO_MINUTOS_ACTUAL) {
-                entrada[3] = entrada[3] - 1;
+                DecrementarBCD(&entrada[2], LIMITES_MINUTOS);
             } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
-                entrada[1] = entrada[1] - 1;
+                DecrementarBCD(entrada, LIMITES_HORAS);
             }
             DisplayWriteBCD(board->display, entrada, sizeof(entrada));
         }
