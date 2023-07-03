@@ -97,7 +97,7 @@ bool ClockSetTime(clock_t reloj, const uint8_t * hora, int size);
  *
  * @param reloj
  */
-int ClockTick(clock_t reloj);
+bool ClockTick(clock_t reloj);
 
 /**
  * @brief
