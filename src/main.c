@@ -49,9 +49,18 @@
 
 /* === Macros definitions ====================================================================== */
 
-#define TICS_POR_SEGUNDO 50
+#define TICS_POR_SEGUNDO 10
 
 /* === Private data type declarations ========================================================== */
+
+typedef enum {
+    SIN_CONFIGURAR,
+    MOSTRANDO_HORA,
+    AJUSTANDO_MINUTOS_ACTUAL,
+    AJJUSTANDO_HORAS_ACTUAL,
+    AJUSTANDO_MINUTOS_ALARMA,
+    AJUSTANDO_HORAS_ALAMA,
+} modo_t;
 
 /* === Private variable declarations =========================================================== */
 
@@ -63,6 +72,8 @@ void ActivarAlarma(void);
 static board_t board;
 
 static clock_t reloj;
+
+static modo_t modo;
 /* === Private function implementation ========================================================= */
 
 void ActivarAlarma(void) {
@@ -71,28 +82,32 @@ void ActivarAlarma(void) {
 
 int main(void) {
 
-    uint8_t hora[6];
-    // uint8_t numero[4] = {5, 6, 7, 8};
     reloj = ClockCreate(TICS_POR_SEGUNDO, ActivarAlarma);
     board = BoardCreate();
+    modo = SIN_CONFIGURAR;
 
     SisTick_Init(1000);
+    DisplayFlashDigits(board->display, 0, 3, 200);
 
-    // DisplayWriteBCD(board->display, numero, sizeof(numero));
-    DisplayToggleDot(board->display, 1);
     while (true) {
-
-        DisplayRefresh(board->display);
 
         if (DigitalInputHasActivated(board->accept)) {
         }
+
         if (DigitalInputHasActivated(board->cancel)) {
         }
 
-        ClockGetTime(reloj, hora, sizeof(hora));
-        __asm volatile("cpsid i");
-        DisplayWriteBCD(board->display, hora, sizeof(hora));
-        __asm volatile("cpsie i");
+        if (DigitalInputHasActivated(board->set_time)) {
+        }
+
+        if (DigitalInputHasActivated(board->set_alarm)) {
+        }
+
+        if (DigitalInputHasActivated(board->increment)) {
+        }
+
+        if (DigitalInputHasActivated(board->decrement)) {
+        }
 
         // para ver el parpadeo se tiene que implementar un delay
         for (int index = 0; index < 100; index++) {
@@ -104,13 +119,20 @@ int main(void) {
 }
 
 void SysTick_Handler(void) {
+
     static const int medio_seg = TICS_POR_SEGUNDO / 2;
     int valor_actual;
+    uint8_t hora[6];
     DisplayRefresh(board->display);
     valor_actual = ClockTick(reloj);
 
     if (valor_actual == medio_seg || valor_actual == 0) {
-        DisplayToggleDot(board->display, 1);
+
+        if (modo <= MOSTRANDO_HORA) {
+            ClockGetTime(reloj, hora, sizeof(hora));
+            DisplayWriteBCD(board->display, hora, sizeof(hora));
+            DisplayToggleDot(board->display, 1);
+        }
     }
 }
 /* === End of documentation ==================================================================== */
