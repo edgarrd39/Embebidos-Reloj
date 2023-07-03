@@ -49,6 +49,8 @@
 
 /* === Macros definitions ====================================================================== */
 
+#define TICS_POR_SEGUNDO 50
+
 /* === Private data type declarations ========================================================== */
 
 /* === Private variable declarations =========================================================== */
@@ -69,40 +71,47 @@ void ActivarAlarma(void) {
 
 int main(void) {
 
-    // uint8_t hora[6];
-    uint8_t numero[4] = {5, 6, 7, 8};
-    reloj = ClockCreate(10, ActivarAlarma);
+    uint8_t hora[6];
+    // uint8_t numero[4] = {5, 6, 7, 8};
+    reloj = ClockCreate(TICS_POR_SEGUNDO, ActivarAlarma);
     board = BoardCreate();
 
     SisTick_Init(1000);
 
-    DisplayWriteBCD(board->display, numero, sizeof(numero));
-    // DisplayFlashDigits(board->display, 0, 3, 1000);
+    // DisplayWriteBCD(board->display, numero, sizeof(numero));
     DisplayToggleDot(board->display, 1);
     while (true) {
 
         DisplayRefresh(board->display);
 
         if (DigitalInputHasActivated(board->accept)) {
-            // DisplayFlashDigits(board->display, 2, 3, 500);
         }
         if (DigitalInputHasActivated(board->cancel)) {
-            // DisplayFlashDigits(board->display, 0, 3, 1000);
         }
 
-        // ClockGetTime(reloj, hora, sizeof(hora));
-        // __asm volatile("cpsid i");
-        // DisplayWriteBCD(board->display, hora, sizeof(hora));
-        // __asm volatile("cpsie i");
-        for (int delay = 0; delay < 25000; delay++) {
-            __asm("NOP");
+        ClockGetTime(reloj, hora, sizeof(hora));
+        __asm volatile("cpsid i");
+        DisplayWriteBCD(board->display, hora, sizeof(hora));
+        __asm volatile("cpsie i");
+
+        // para ver el parpadeo se tiene que implementar un delay
+        for (int index = 0; index < 100; index++) {
+            for (int delay = 0; delay < 2500; delay++) {
+                __asm("NOP");
+            }
         }
     }
 }
 
 void SysTick_Handler(void) {
+    static const int medio_seg = TICS_POR_SEGUNDO / 2;
+    int valor_actual;
     DisplayRefresh(board->display);
-    ClockTick(reloj);
+    valor_actual = ClockTick(reloj);
+
+    if (valor_actual == medio_seg || valor_actual == 0) {
+        DisplayToggleDot(board->display, 1);
+    }
 }
 /* === End of documentation ==================================================================== */
 

@@ -138,7 +138,7 @@ void DisplayFlashDigits(display_t display, uint8_t from, uint8_t to, uint16_t fr
 }
 
 void DisplayToggleDot(display_t display, uint8_t position) {
-    display->memory[position] ^= (1 << 7);
+    display->memory[position] ^= SEGMENT_P;
 }
 /* === End of documentation ==================================================================== */
 

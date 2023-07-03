@@ -139,13 +139,14 @@ bool ClockSetTime(clock_t reloj, const uint8_t * hora, int size) {
     return true;
 }
 
-void ClockTick(clock_t reloj) {
+int ClockTick(clock_t reloj) {
     reloj->ticks++;
     if (reloj->ticks == reloj->ticks_por_segundo) {
         reloj->ticks = 0;
         IncrementarTiempo(reloj->hora_actual);
         CompararHoraConAlarma(reloj);
     }
+    return reloj->ticks;
 }
 
 bool ClockSetAlarma(clock_t reloj, const uint8_t * hora, int size) {
