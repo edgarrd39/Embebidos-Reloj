@@ -164,6 +164,10 @@ bool ClockGetStateAlarm(clock_t reloj) {
     return reloj->tiene_alarma;
 }
 
+void ClockActivarAlarma(clock_t reloj) {
+    reloj->tiene_alarma = true;
+}
+
 void ClockDesactivarAlarma(clock_t reloj) {
     reloj->tiene_alarma = false;
 }

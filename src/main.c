@@ -50,6 +50,7 @@
 /* === Macros definitions ====================================================================== */
 
 #define TICS_POR_SEGUNDO 10
+#define TIEMPO_POSPONER 5
 
 /* === Private data type declarations ========================================================== */
 
@@ -74,6 +75,8 @@ static clock_t reloj;
 
 static modo_t modo;
 
+static bool alarma_sonando = false;
+
 /* === Private variable definitions ============================================================ */
 
 static const uint8_t LIMITES_MINUTOS[] = {5, 9};
@@ -82,6 +85,8 @@ static const uint8_t LIMITES_HORAS[] = {2, 3};
 /* === Private function implementation ========================================================= */
 
 void ActivarAlarma(void) {
+    DigitalOutputActivate(board->buzzer);
+    alarma_sonando = true;
 }
 
 void CambiarModo(modo_t valor) {
@@ -155,24 +160,41 @@ int main(void) {
     while (true) {
 
         if (DigitalInputHasActivated(board->accept)) {
-            if (modo == AJUSTANDO_MINUTOS_ACTUAL) {
-                CambiarModo(AJUSTANDO_HORAS_ACTUAL);
-            } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
-                ClockSetTime(reloj, entrada, sizeof(entrada));
-                CambiarModo(MOSTRANDO_HORA);
-            } else if (modo == AJUSTANDO_MINUTOS_ALARMA) {
-                CambiarModo(AJUSTANDO_HORAS_ALARMA);
-            } else if (modo == AJUSTANDO_HORAS_ALARMA) {
-                ClockSetAlarma(reloj, entrada, sizeof(entrada));
-                CambiarModo(MOSTRANDO_HORA);
+            if (!alarma_sonando) {
+                if (modo == MOSTRANDO_HORA) {
+                    ClockActivarAlarma(reloj);
+                } else if (modo == AJUSTANDO_MINUTOS_ACTUAL) {
+                    CambiarModo(AJUSTANDO_HORAS_ACTUAL);
+                } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
+                    ClockSetTime(reloj, entrada, sizeof(entrada));
+                    CambiarModo(MOSTRANDO_HORA);
+                } else if (modo == AJUSTANDO_MINUTOS_ALARMA) {
+                    CambiarModo(AJUSTANDO_HORAS_ALARMA);
+                } else if (modo == AJUSTANDO_HORAS_ALARMA) {
+                    ClockSetAlarma(reloj, entrada, sizeof(entrada));
+                    CambiarModo(MOSTRANDO_HORA);
+                    ClockActivarAlarma(reloj);
+                }
+            } else {
+                DigitalOutputDesactivate(board->buzzer);
+                ClockPosponerAlarma(reloj, TIEMPO_POSPONER);
+                alarma_sonando = false;
             }
         }
 
         if (DigitalInputHasActivated(board->cancel)) {
-            if (ClockGetTime(reloj, entrada, sizeof(entrada))) {
-                CambiarModo(MOSTRANDO_HORA);
+            if (!alarma_sonando) {
+                if (modo == MOSTRANDO_HORA) {
+                    ClockDesactivarAlarma(reloj);
+                    DisplayToggleDot(board->display, 3);
+                } else if (ClockGetTime(reloj, entrada, sizeof(entrada)) && (modo != MOSTRANDO_HORA)) {
+                    CambiarModo(MOSTRANDO_HORA);
+                } else {
+                    CambiarModo(SIN_CONFIGURAR);
+                }
             } else {
-                CambiarModo(SIN_CONFIGURAR);
+                DigitalOutputDesactivate(board->buzzer);
+                alarma_sonando = false;
             }
         }
 
