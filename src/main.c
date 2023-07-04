@@ -160,6 +160,11 @@ int main(void) {
             } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
                 ClockSetTime(reloj, entrada, sizeof(entrada));
                 CambiarModo(MOSTRANDO_HORA);
+            } else if (modo == AJUSTANDO_MINUTOS_ALARMA) {
+                CambiarModo(AJUSTANDO_HORAS_ALARMA);
+            } else if (modo == AJUSTANDO_HORAS_ALARMA) {
+                ClockSetAlarma(reloj, entrada, sizeof(entrada));
+                CambiarModo(MOSTRANDO_HORA);
             }
         }
 
@@ -171,13 +176,16 @@ int main(void) {
             }
         }
 
+        if (DigitalInputHasActivated(board->set_alarm)) {
+            CambiarModo(AJUSTANDO_MINUTOS_ALARMA);
+            ClockGetAlarma(reloj, entrada, sizeof(entrada));
+            DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+        }
+
         if (DigitalInputHasActivated(board->set_time)) {
             CambiarModo(AJUSTANDO_MINUTOS_ACTUAL);
             ClockGetTime(reloj, entrada, sizeof(entrada));
             DisplayWriteBCD(board->display, entrada, sizeof(entrada));
-        }
-
-        if (DigitalInputHasActivated(board->set_alarm)) {
         }
 
         if (DigitalInputHasActivated(board->increment)) {
@@ -185,7 +193,12 @@ int main(void) {
                 IncrementarBCD(&entrada[2], LIMITES_MINUTOS);
             } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
                 IncrementarBCD(entrada, LIMITES_HORAS);
+            } else if (modo == AJUSTANDO_MINUTOS_ALARMA) {
+                IncrementarBCD(&entrada[2], LIMITES_MINUTOS);
+            } else if (modo == AJUSTANDO_HORAS_ALARMA) {
+                IncrementarBCD(entrada, LIMITES_HORAS);
             }
+
             DisplayWriteBCD(board->display, entrada, sizeof(entrada));
         }
 
@@ -193,6 +206,10 @@ int main(void) {
             if (modo == AJUSTANDO_MINUTOS_ACTUAL) {
                 DecrementarBCD(&entrada[2], LIMITES_MINUTOS);
             } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
+                DecrementarBCD(entrada, LIMITES_HORAS);
+            } else if (modo == AJUSTANDO_MINUTOS_ALARMA) {
+                DecrementarBCD(&entrada[2], LIMITES_MINUTOS);
+            } else if (modo == AJUSTANDO_HORAS_ALARMA) {
                 DecrementarBCD(entrada, LIMITES_HORAS);
             }
             DisplayWriteBCD(board->display, entrada, sizeof(entrada));
@@ -218,9 +235,12 @@ void SysTick_Handler(void) {
     if (current_value != last_value) {
 
         last_value = current_value;
-        if (modo <= MOSTRANDO_HORA) {
+        if (modo == MOSTRANDO_HORA) {
             ClockGetTime(reloj, hora, sizeof(hora));
             DisplayWriteBCD(board->display, hora, sizeof(hora));
+            if (ClockGetAlarma(reloj, hora, sizeof(hora))) {
+                DisplayToggleDot(board->display, 3);
+            }
 
             if (current_value) {
                 DisplayToggleDot(board->display, 1);
