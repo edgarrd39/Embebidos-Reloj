@@ -211,30 +211,29 @@ int main(void) {
         }
 
         if (DigitalInputHasActivated(board->increment)) {
-            if (modo == AJUSTANDO_MINUTOS_ACTUAL) {
+            if (modo == AJUSTANDO_MINUTOS_ACTUAL || modo == AJUSTANDO_MINUTOS_ALARMA) {
                 IncrementarBCD(&entrada[2], LIMITES_MINUTOS);
-            } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
-                IncrementarBCD(entrada, LIMITES_HORAS);
-            } else if (modo == AJUSTANDO_MINUTOS_ALARMA) {
-                IncrementarBCD(&entrada[2], LIMITES_MINUTOS);
-            } else if (modo == AJUSTANDO_HORAS_ALARMA) {
+            } else if (modo == AJUSTANDO_HORAS_ACTUAL || modo == AJUSTANDO_HORAS_ALARMA) {
                 IncrementarBCD(entrada, LIMITES_HORAS);
             }
-
-            DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+            if ((modo == AJUSTANDO_MINUTOS_ACTUAL) || (modo == AJUSTANDO_HORAS_ACTUAL)) {
+                DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+            } else if (((modo == AJUSTANDO_MINUTOS_ALARMA) || (modo == AJUSTANDO_HORAS_ALARMA))) {
+                DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+            }
         }
 
         if (DigitalInputHasActivated(board->decrement)) {
-            if (modo == AJUSTANDO_MINUTOS_ACTUAL) {
+            if (modo == AJUSTANDO_MINUTOS_ACTUAL || modo == AJUSTANDO_MINUTOS_ALARMA) {
                 DecrementarBCD(&entrada[2], LIMITES_MINUTOS);
-            } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
-                DecrementarBCD(entrada, LIMITES_HORAS);
-            } else if (modo == AJUSTANDO_MINUTOS_ALARMA) {
-                DecrementarBCD(&entrada[2], LIMITES_MINUTOS);
-            } else if (modo == AJUSTANDO_HORAS_ALARMA) {
+            } else if (modo == AJUSTANDO_HORAS_ACTUAL || modo == AJUSTANDO_HORAS_ALARMA) {
                 DecrementarBCD(entrada, LIMITES_HORAS);
             }
-            DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+            if ((modo == AJUSTANDO_MINUTOS_ACTUAL) || (modo == AJUSTANDO_HORAS_ACTUAL)) {
+                DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+            } else if (((modo == AJUSTANDO_MINUTOS_ALARMA) || (modo == AJUSTANDO_HORAS_ALARMA))) {
+                DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+            }
         }
 
         // para ver el parpadeo se tiene que implementar un delay
