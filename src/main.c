@@ -52,6 +52,7 @@
 #define TICS_POR_SEGUNDO 1000
 #define TIEMPO_POSPONER 5
 #define TIEMPO_MAXIMO_PRESIONAR 3000
+#define TIEMPO_MAXIMO_CONFIGURACION TIEMPO_MAXIMO_PRESIONAR * 10
 
 /* === Private data type declarations ========================================================== */
 
@@ -81,6 +82,8 @@ static bool alarma_sonando = false;
 static uint16_t contador_setear_tiempo = 0;
 
 static uint16_t contador_setear_alarma = 0;
+
+static uint16_t contador_configuracion = 0;
 
 /* === Private variable definitions ============================================================ */
 
@@ -213,6 +216,7 @@ int main(void) {
         }
         if (contador_setear_alarma > TIEMPO_MAXIMO_PRESIONAR) {
             contador_setear_alarma = 0;
+            contador_configuracion = 1;
             CambiarModo(AJUSTANDO_MINUTOS_ALARMA);
             ClockGetAlarma(reloj, entrada, sizeof(entrada));
             DisplayWriteBCD(board->display, entrada, sizeof(entrada));
@@ -223,14 +227,17 @@ int main(void) {
 
         if (contador_setear_tiempo > TIEMPO_MAXIMO_PRESIONAR) {
             contador_setear_tiempo = 0;
+            contador_configuracion = 1;
             CambiarModo(AJUSTANDO_MINUTOS_ACTUAL);
             ClockGetTime(reloj, entrada, sizeof(entrada));
             DisplayWriteBCD(board->display, entrada, sizeof(entrada));
         }
         if (DigitalInputHasActivated(board->increment)) {
             if (modo == AJUSTANDO_MINUTOS_ACTUAL || modo == AJUSTANDO_MINUTOS_ALARMA) {
+                contador_configuracion = 1;
                 IncrementarBCD(&entrada[2], LIMITES_MINUTOS);
             } else if (modo == AJUSTANDO_HORAS_ACTUAL || modo == AJUSTANDO_HORAS_ALARMA) {
+                contador_configuracion = 1;
                 IncrementarBCD(entrada, LIMITES_HORAS);
             }
             if ((modo == AJUSTANDO_MINUTOS_ACTUAL) || (modo == AJUSTANDO_HORAS_ACTUAL)) {
@@ -242,14 +249,26 @@ int main(void) {
 
         if (DigitalInputHasActivated(board->decrement)) {
             if (modo == AJUSTANDO_MINUTOS_ACTUAL || modo == AJUSTANDO_MINUTOS_ALARMA) {
+                contador_configuracion = 1;
                 DecrementarBCD(&entrada[2], LIMITES_MINUTOS);
             } else if (modo == AJUSTANDO_HORAS_ACTUAL || modo == AJUSTANDO_HORAS_ALARMA) {
+                contador_configuracion = 1;
                 DecrementarBCD(entrada, LIMITES_HORAS);
             }
             if ((modo == AJUSTANDO_MINUTOS_ACTUAL) || (modo == AJUSTANDO_HORAS_ACTUAL)) {
                 DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+
             } else if (((modo == AJUSTANDO_MINUTOS_ALARMA) || (modo == AJUSTANDO_HORAS_ALARMA))) {
                 DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+            }
+        }
+
+        if (contador_configuracion >= TIEMPO_MAXIMO_CONFIGURACION) {
+            contador_configuracion = 0;
+            if (ClockGetTime(reloj, entrada, sizeof(entrada))) {
+                CambiarModo(MOSTRANDO_HORA);
+            } else {
+                CambiarModo(SIN_CONFIGURAR);
             }
         }
 
@@ -298,6 +317,12 @@ void SysTick_Handler(void) {
 
     if ((DigitalInputGetState(board->set_alarm)) && (contador_setear_alarma > 0)) {
         contador_setear_alarma++;
+    }
+
+    if (!(DigitalInputGetState(board->set_time)) && !(DigitalInputGetState(board->set_alarm)) &&
+        !(DigitalInputGetState(board->increment)) && !(DigitalInputGetState(board->decrement)) &&
+        contador_configuracion > 0) {
+        contador_configuracion++;
     }
 }
 /* === End of documentation ==================================================================== */
