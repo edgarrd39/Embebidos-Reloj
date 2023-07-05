@@ -44,6 +44,10 @@ extern "C" {
 /* === Public data type declarations =========================================================== */
 typedef struct board_s {
     digital_output_t buzzer;
+    digital_output_t led_rojo;
+    digital_output_t led_amarillo;
+    digital_output_t led_verde;
+
     digital_input_t set_time;
     digital_input_t set_alarm;
     digital_input_t decrement;

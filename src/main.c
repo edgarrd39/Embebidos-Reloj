@@ -256,7 +256,7 @@ void SysTick_Handler(void) {
     if (current_value != last_value) {
 
         last_value = current_value;
-        if (modo == MOSTRANDO_HORA) {
+        if (modo <= MOSTRANDO_HORA) {
             ClockGetTime(reloj, hora, sizeof(hora));
             DisplayWriteBCD(board->display, hora, sizeof(hora));
             if (ClockGetAlarma(reloj, hora, sizeof(hora))) {
