@@ -49,8 +49,9 @@
 
 /* === Macros definitions ====================================================================== */
 
-#define TICS_POR_SEGUNDO 10
+#define TICS_POR_SEGUNDO 1000
 #define TIEMPO_POSPONER 5
+#define TIEMPO_MAXIMO_PRESIONAR 3000
 
 /* === Private data type declarations ========================================================== */
 
@@ -128,37 +129,42 @@ void CambiarModo(modo_t valor) {
 }
 
 void IncrementarBCD(uint8_t numero[2], const uint8_t limite[2]) {
+
     numero[1]++;
+    if ((numero[0] >= limite[0]) && (numero[1]) > limite[1]) {
+        numero[1] = 0;
+        numero[0] = 0;
+    }
     if (numero[1] > 9) {
         numero[1] = 0;
         numero[0]++;
     }
-    if ((numero[0] > limite[0]) && (numero[1]) > limite[1]) {
-        numero[1] = 0;
-        numero[2] = 0;
-    }
 }
 
 void DecrementarBCD(uint8_t numero[2], const uint8_t limite[2]) {
+
     numero[1]--;
+
     if (numero[1] > 9) {
-        numero[1] = 0;
-        numero[0]--;
-    }
-    if ((numero[0] > limite[0]) && (numero[1]) > limite[1]) {
-        numero[1] = 0;
-        numero[2] = 0;
+        numero[1] = 9;
+        if (numero[0] > 0)
+            numero[0]--;
+        else {
+            numero[0] = limite[0];
+            numero[1] = limite[1];
+        }
     }
 }
+
 /* === Public function implementation ========================================================= */
 
 int main(void) {
     uint8_t entrada[4];
 
-    reloj = ClockCreate(TICS_POR_SEGUNDO, ActivarAlarma);
+    reloj = ClockCreate(TICS_POR_SEGUNDO / 100, ActivarAlarma);
     board = BoardCreate();
 
-    SisTick_Init(1000);
+    SisTick_Init(TICS_POR_SEGUNDO);
     CambiarModo(SIN_CONFIGURAR);
 
     while (true) {
@@ -205,7 +211,7 @@ int main(void) {
         if (DigitalInputHasActivated(board->set_alarm)) {
             contador_setear_alarma = 1;
         }
-        if (contador_setear_alarma > 3000) {
+        if (contador_setear_alarma > TIEMPO_MAXIMO_PRESIONAR) {
             contador_setear_alarma = 0;
             CambiarModo(AJUSTANDO_MINUTOS_ALARMA);
             ClockGetAlarma(reloj, entrada, sizeof(entrada));
@@ -215,7 +221,7 @@ int main(void) {
             contador_setear_tiempo = 1;
         }
 
-        if (contador_setear_tiempo > 3000) {
+        if (contador_setear_tiempo > TIEMPO_MAXIMO_PRESIONAR) {
             contador_setear_tiempo = 0;
             CambiarModo(AJUSTANDO_MINUTOS_ACTUAL);
             ClockGetTime(reloj, entrada, sizeof(entrada));
@@ -247,7 +253,6 @@ int main(void) {
             }
         }
 
-        // para ver el parpadeo se tiene que implementar un delay
         for (int index = 0; index < 100; index++) {
             for (int delay = 0; delay < 2500; delay++) {
                 __asm("NOP");
@@ -277,6 +282,13 @@ void SysTick_Handler(void) {
             if (current_value) {
                 DisplayToggleDot(board->display, 1);
             }
+        }
+
+        if (modo == AJUSTANDO_MINUTOS_ALARMA || modo == AJUSTANDO_HORAS_ALARMA) {
+            DisplayToggleDot(board->display, 0);
+            DisplayToggleDot(board->display, 1);
+            DisplayToggleDot(board->display, 2);
+            DisplayToggleDot(board->display, 3);
         }
     }
 
