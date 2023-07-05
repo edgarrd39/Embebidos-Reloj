@@ -77,6 +77,10 @@ static modo_t modo;
 
 static bool alarma_sonando = false;
 
+static uint16_t contador_setear_tiempo = 0;
+
+static uint16_t contador_setear_alarma = 0;
+
 /* === Private variable definitions ============================================================ */
 
 static const uint8_t LIMITES_MINUTOS[] = {5, 9};
@@ -199,17 +203,24 @@ int main(void) {
         }
 
         if (DigitalInputHasActivated(board->set_alarm)) {
+            contador_setear_alarma = 1;
+        }
+        if (contador_setear_alarma > 3000) {
+            contador_setear_alarma = 0;
             CambiarModo(AJUSTANDO_MINUTOS_ALARMA);
             ClockGetAlarma(reloj, entrada, sizeof(entrada));
             DisplayWriteBCD(board->display, entrada, sizeof(entrada));
         }
-
         if (DigitalInputHasActivated(board->set_time)) {
+            contador_setear_tiempo = 1;
+        }
+
+        if (contador_setear_tiempo > 3000) {
+            contador_setear_tiempo = 0;
             CambiarModo(AJUSTANDO_MINUTOS_ACTUAL);
             ClockGetTime(reloj, entrada, sizeof(entrada));
             DisplayWriteBCD(board->display, entrada, sizeof(entrada));
         }
-
         if (DigitalInputHasActivated(board->increment)) {
             if (modo == AJUSTANDO_MINUTOS_ACTUAL || modo == AJUSTANDO_MINUTOS_ALARMA) {
                 IncrementarBCD(&entrada[2], LIMITES_MINUTOS);
@@ -267,6 +278,14 @@ void SysTick_Handler(void) {
                 DisplayToggleDot(board->display, 1);
             }
         }
+    }
+
+    if ((DigitalInputGetState(board->set_time)) && (contador_setear_tiempo > 0)) {
+        contador_setear_tiempo++;
+    }
+
+    if ((DigitalInputGetState(board->set_alarm)) && (contador_setear_alarma > 0)) {
+        contador_setear_alarma++;
     }
 }
 /* === End of documentation ==================================================================== */
