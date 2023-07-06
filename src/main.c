@@ -114,17 +114,10 @@ void CambiarModo(modo_t valor) {
         break;
     case AJUSTANDO_MINUTOS_ALARMA:
         DisplayFlashDigits(board->display, 2, 3, 200);
-        DisplayToggleDot(board->display, 0);
-        DisplayToggleDot(board->display, 1);
-        DisplayToggleDot(board->display, 2);
-        DisplayToggleDot(board->display, 3);
         break;
     case AJUSTANDO_HORAS_ALARMA:
         DisplayFlashDigits(board->display, 0, 1, 200);
-        DisplayToggleDot(board->display, 0);
-        DisplayToggleDot(board->display, 1);
-        DisplayToggleDot(board->display, 2);
-        DisplayToggleDot(board->display, 3);
+
         break;
     default:
         break;
@@ -164,7 +157,7 @@ void DecrementarBCD(uint8_t numero[2], const uint8_t limite[2]) {
 int main(void) {
     uint8_t entrada[4];
 
-    reloj = ClockCreate(TICS_POR_SEGUNDO / 100, ActivarAlarma);
+    reloj = ClockCreate(TICS_POR_SEGUNDO / 10, ActivarAlarma);
     board = BoardCreate();
 
     SisTick_Init(TICS_POR_SEGUNDO);
@@ -297,10 +290,7 @@ void SysTick_Handler(void) {
             if (ClockGetAlarma(reloj, hora, sizeof(hora))) {
                 DisplayToggleDot(board->display, 3);
             }
-
-            if (current_value) {
-                DisplayToggleDot(board->display, 1);
-            }
+            DisplayToggleDot(board->display, 1);
         }
 
         if (modo == AJUSTANDO_MINUTOS_ALARMA || modo == AJUSTANDO_HORAS_ALARMA) {
