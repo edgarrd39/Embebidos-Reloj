@@ -169,14 +169,30 @@ void ClockActivarAlarma(clock_t reloj) {
 }
 
 void ClockDesactivarAlarma(clock_t reloj) {
+    reloj->posponer = false;
     reloj->tiene_alarma = false;
 }
 
-bool ClockPosponerAlarma(clock_t reloj, uint8_t minutos) {
-    memcpy(reloj->hora_pospuesta, reloj->hora_alarma, 6);
-    reloj->hora_alarma[3] += minutos; // por ahora solo del 1 al 9
-    reloj->posponer = true;
-    return reloj->posponer;
+bool ClockToggleAlarm(clock_t reloj) {
+    reloj->tiene_alarma = !reloj->tiene_alarma;
+    return reloj->tiene_alarma;
+}
+
+void ClockPosponerAlarma(clock_t reloj, uint8_t minutos) {
+    if (reloj->posponer == false) {
+        memcpy(reloj->hora_pospuesta, reloj->hora_alarma, 6);
+        reloj->hora_alarma[3] += minutos; // por ahora solo del 1 al 9
+        reloj->posponer = true;
+    }
+
+    // return reloj->posponer;
+}
+
+void ClockVerificarPosponer(clock_t reloj) {
+    if (reloj->posponer) {
+        memcpy(reloj->hora_alarma, reloj->hora_pospuesta, 6);
+        reloj->posponer = false;
+    }
 }
 /* === End of documentation ==================================================================== */
 

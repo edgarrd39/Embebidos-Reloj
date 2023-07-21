@@ -140,10 +140,8 @@ void ClockDesactivarAlarma(clock_t reloj);
  *
  * @param reloj
  * @param minutos
- * @return true
- * @return false
  */
-bool ClockPosponerAlarma(clock_t reloj, uint8_t minutos);
+void ClockPosponerAlarma(clock_t reloj, uint8_t minutos);
 
 /**
  * @brief
@@ -153,6 +151,22 @@ bool ClockPosponerAlarma(clock_t reloj, uint8_t minutos);
  * @return false
  */
 bool ClockGetStateAlarm(clock_t reloj);
+
+/**
+ * @brief
+ *
+ * @param reloj
+ * @return true
+ * @return false
+ */
+bool ClockToggleAlarm(clock_t reloj);
+
+/**
+ * @brief
+ *
+ * @param reloj
+ */
+void ClockVerificarPosponer(clock_t reloj);
 /* === End of documentation ==================================================================== */
 
 #ifdef __cplusplus

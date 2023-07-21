@@ -95,10 +95,10 @@ void KeysInit(void) {
     board.set_alarm = DigitalInputCreate(KEY_F2_GPIO, KEY_F2_BIT, false);
 
     Chip_SCU_PinMuxSet(KEY_F3_PORT, KEY_F3_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | KEY_F3_FUNC);
-    board.increment = DigitalInputCreate(KEY_F3_GPIO, KEY_F3_BIT, false);
+    board.decrement = DigitalInputCreate(KEY_F3_GPIO, KEY_F3_BIT, false);
 
     Chip_SCU_PinMuxSet(KEY_F4_PORT, KEY_F4_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | KEY_F4_FUNC);
-    board.decrement = DigitalInputCreate(KEY_F4_GPIO, KEY_F4_BIT, false);
+    board.increment = DigitalInputCreate(KEY_F4_GPIO, KEY_F4_BIT, false);
 
     Chip_SCU_PinMuxSet(KEY_ACCEPT_PORT, KEY_ACCEPT_PIN, SCU_MODE_INBUFF_EN | SCU_MODE_PULLUP | KEY_ACCEPT_FUNC);
     board.accept = DigitalInputCreate(KEY_ACCEPT_GPIO, KEY_ACCEPT_BIT, false);
