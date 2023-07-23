@@ -166,7 +166,7 @@ bool ClockToggleAlarm(clock_t reloj);
  *
  * @param reloj
  */
-void ClockVerificarPosponer(clock_t reloj);
+void ClockCancelarAlarma(clock_t reloj);
 /* === End of documentation ==================================================================== */
 
 #ifdef __cplusplus

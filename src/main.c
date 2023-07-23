@@ -194,7 +194,7 @@ int main(void) {
                 if (alarma_sonando) {
                     DisplayToggleDot(board->display, 3);
                     DigitalOutputDesactivate(board->buzzer);
-                    ClockVerificarPosponer(reloj);
+                    ClockCancelarAlarma(reloj);
                     alarma_sonando = false;
                 } else {
                     ClockDesactivarAlarma(reloj);

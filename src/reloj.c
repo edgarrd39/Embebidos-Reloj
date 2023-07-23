@@ -60,6 +60,7 @@ struct clock_s {
     uint8_t hora_actual[TIME_SIZE];
     uint8_t hora_alarma[TIME_SIZE];
     uint8_t hora_pospuesta[TIME_SIZE];
+    uint8_t hora_alarma_inicial[TIME_SIZE];
     uint8_t ticks_por_segundo;
     uint8_t ticks;
     alarma_evento_t evento;
@@ -180,17 +181,21 @@ bool ClockToggleAlarm(clock_t reloj) {
 
 void ClockPosponerAlarma(clock_t reloj, uint8_t minutos) {
     if (reloj->posponer == false) {
-        memcpy(reloj->hora_pospuesta, reloj->hora_alarma, 6);
-        reloj->hora_alarma[3] += minutos; // por ahora solo del 1 al 9
-        reloj->posponer = true;
+        memcpy(reloj->hora_alarma_inicial, reloj->hora_alarma, 6);
     }
-
-    // return reloj->posponer;
+    memcpy(reloj->hora_pospuesta, reloj->hora_alarma, 6);
+    if ((reloj->hora_alarma[3] + minutos) > 9) {
+        reloj->hora_alarma[2] += 1;
+        reloj->hora_alarma[3] -= minutos; // por ahora solo del 1 al 9
+    } else {
+        reloj->hora_alarma[MINUTOS_UNIDADES] += minutos;
+    }
+    reloj->posponer = true;
 }
 
-void ClockVerificarPosponer(clock_t reloj) {
+void ClockCancelarAlarma(clock_t reloj) {
     if (reloj->posponer) {
-        memcpy(reloj->hora_alarma, reloj->hora_pospuesta, 6);
+        memcpy(reloj->hora_alarma, reloj->hora_alarma_inicial, 6);
         reloj->posponer = false;
     }
 }
