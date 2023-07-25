@@ -120,7 +120,7 @@ void ActivarAlarma(void) {
     alarma_sonando = true;
 }
 
-void CambiarModo(modo_t valor) {
+static void CambiarModo(modo_t valor) {
     modo = valor;
     switch (modo) {
     case SIN_CONFIGURAR:
@@ -175,6 +175,33 @@ void DecrementarBCD(uint8_t numero[2], const uint8_t limite[2]) {
     }
 }
 
+static void RefreshTask(void * parameters) {
+
+    while (true) {
+        vTaskDelay(pdMS_TO_TICKS(1));
+        DisplayRefresh(board->display);
+    }
+}
+
+static void SystickTask(void * parameters) {
+
+    bool current_value;
+    uint8_t hora[6];
+    while (true) {
+        vTaskDelay(pdMS_TO_TICKS(1));
+        static bool last_value = false;
+        current_value = ClockTick(reloj);
+
+        if (current_value != last_value) {
+
+            last_value = current_value;
+            if (modo <= MOSTRANDO_HORA) {
+                ClockGetTime(reloj, hora, sizeof(hora));
+                DisplayWriteBCD(board->display, hora, sizeof(hora));
+            }
+        }
+    }
+}
 static void KeyTask(void * parameters) {
     board_t board = parameters;
     uint8_t estado_final, estado_actual, changes, events;
@@ -206,52 +233,23 @@ static void KeyTask(void * parameters) {
     }
 }
 
-static void FlashTask(void * parameters) {
-    parametros_t parametros = parameters;
-    // TickType_t last_value = xTaskGetTickCount();
-
-    while (true) {
-        xEventGroupWaitBits(key_events, parametros->tecla, TRUE, FALSE, portMAX_DELAY);
-
-        DigitalOutputActivate(parametros->pin);
-        vTaskDelay(pdMS_TO_TICKS(parametros->tiempo));
-        DigitalOutputDesactivate(parametros->pin);
-        // vTaskDelayUntil(&last_value, pdMS_TO_TICKS(1000));
-        vTaskDelay(pdMS_TO_TICKS(500));
-    }
-}
-
 /* === Public function implementation ========================================================= */
 
 int main(void) {
     // uint8_t entrada[4];
 
-    // reloj = ClockCreate(TICS_POR_SEGUNDO / 50, ActivarAlarma);
+    reloj = ClockCreate(TICS_POR_SEGUNDO / 50, ActivarAlarma);
     board = BoardCreate();
 
     SisTick_Init(TICS_POR_SEGUNDO);
-    // CambiarModo(SIN_CONFIGURAR);
-
-    static struct parametros_s parametros[3];
-    parametros[0].tecla = EVENT_TEC1_ON;
-    parametros[0].pin = board->led_verde;
-    parametros[0].tiempo = 500;
-
-    parametros[1].tecla = EVENT_TEC2_ON;
-    parametros[1].pin = board->led_amarillo;
-    parametros[1].tiempo = 250;
-
-    parametros[2].tecla = EVENT_TEC3_ON;
-    parametros[2].pin = board->led_rojo;
-    parametros[2].tiempo = 750;
+    CambiarModo(SIN_CONFIGURAR);
 
     key_events = xEventGroupCreate();
 
     xTaskCreate(KeyTask, "Teclas", 256, (void *)board, tskIDLE_PRIORITY + 1, NULL);
 
-    xTaskCreate(FlashTask, "Verde", 256, &parametros[0], tskIDLE_PRIORITY + 2, NULL);
-    xTaskCreate(FlashTask, "Amarillo", 256, &parametros[1], tskIDLE_PRIORITY + 2, NULL);
-    xTaskCreate(FlashTask, "Rojo", 256, &parametros[2], tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(RefreshTask, "Refresh", 256, NULL, tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(SystickTask, "Systick", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
 
     vTaskStartScheduler();
     while (true) {
