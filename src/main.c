@@ -54,15 +54,19 @@
 
 //! Eventos
 
-#define EVENT_TEC1_ON (1 << 0)
-#define EVENT_TEC2_ON (1 << 1)
-#define EVENT_TEC3_ON (1 << 2)
-#define EVENT_TEC4_ON (1 << 3)
+#define EVENT_KEY_ACCEPT_ON (1 << 0)
+#define EVENT_KEY_CANCEL_ON (1 << 1)
+#define EVENT_KEY_SET_TIME_ON (1 << 2)
+#define EVENT_KEY_SET_ALARM_ON (1 << 3)
+#define EVENT_KEY_INCREMENT_ON (1 << 4)
+#define EVENT_KEY_DECREMENT_ON (1 << 5)
 
-#define EVENT_TEC1_OFF (1 << 4)
-#define EVENT_TEC2_OFF (1 << 5)
-#define EVENT_TEC3_OFF (1 << 6)
-#define EVENT_TEC4_OFF (1 << 7)
+#define EVENT_KEY_ACCEPT_OFF (1 << 6)
+#define EVENT_KEY_CANCEL_OFF (1 << 7)
+#define EVENT_KEY_SET_TIME_OFF (1 << 8)
+#define EVENT_KEY_SET_ALARM_OFF (1 << 9)
+#define EVENT_KEY_INCREMENT_OFF (1 << 10)
+#define EVENT_KEY_DECREMENT_OFF (1 << 11)
 //
 
 #define TICS_POR_SEGUNDO 1000
@@ -81,11 +85,6 @@ typedef enum {
     AJUSTANDO_HORAS_ALARMA,
 } modo_t;
 
-typedef struct parametros_s {
-    uint16_t tecla;
-    digital_output_t pin;
-    uint32_t tiempo;
-} * parametros_t;
 /* === Private variable declarations =========================================================== */
 
 /* === Private function declarations =========================================================== */
@@ -101,6 +100,8 @@ static modo_t modo;
 EventGroupHandle_t key_events;
 
 static bool alarma_sonando = false;
+
+static uint8_t entrada[4];
 
 static uint16_t contador_setear_tiempo = 0;
 
@@ -198,6 +199,17 @@ static void SystickTask(void * parameters) {
             if (modo <= MOSTRANDO_HORA) {
                 ClockGetTime(reloj, hora, sizeof(hora));
                 DisplayWriteBCD(board->display, hora, sizeof(hora));
+                if (ClockGetAlarma(reloj, hora, sizeof(hora))) {
+                    DisplayToggleDot(board->display, 3);
+                }
+                DisplayToggleDot(board->display, 1);
+            }
+
+            if (modo == AJUSTANDO_MINUTOS_ALARMA || modo == AJUSTANDO_HORAS_ALARMA) {
+                DisplayToggleDot(board->display, 0);
+                DisplayToggleDot(board->display, 1);
+                DisplayToggleDot(board->display, 2);
+                DisplayToggleDot(board->display, 3);
             }
         }
     }
@@ -207,36 +219,153 @@ static void KeyTask(void * parameters) {
     uint8_t estado_final, estado_actual, changes, events;
 
     while (true) {
-        vTaskDelay(pdMS_TO_TICKS(150));
+        vTaskDelay(pdMS_TO_TICKS(100));
 
         estado_actual = 0;
         if (DigitalInputGetState(board->accept)) {
-            estado_actual |= EVENT_TEC1_ON;
+            estado_actual |= EVENT_KEY_ACCEPT_ON;
         }
 
         if (DigitalInputGetState(board->cancel)) {
-            estado_actual |= EVENT_TEC2_ON;
+            estado_actual |= EVENT_KEY_CANCEL_ON;
         }
 
         if (DigitalInputGetState(board->set_time)) {
-            estado_actual |= EVENT_TEC3_ON;
+            estado_actual |= EVENT_KEY_SET_TIME_ON;
         }
 
         if (DigitalInputGetState(board->set_alarm)) {
-            estado_actual |= EVENT_TEC4_ON;
+            estado_actual |= EVENT_KEY_SET_ALARM_ON;
+        }
+
+        if (DigitalInputGetState(board->increment)) {
+            estado_actual |= EVENT_KEY_INCREMENT_ON;
+        }
+
+        if (DigitalInputGetState(board->decrement)) {
+            estado_actual |= EVENT_KEY_DECREMENT_ON;
         }
 
         changes = estado_actual ^ estado_final;
         estado_final = estado_actual;
-        events = ((changes & !estado_actual) << 4) | (changes & estado_actual);
+        events = ((changes & !estado_actual) << 6) | (changes & estado_actual);
         xEventGroupSetBits(key_events, events);
     }
 }
 
+static void AcceptKeyTask(void * parameters) {
+
+    while (true) {
+        xEventGroupWaitBits(key_events, EVENT_KEY_ACCEPT_ON, TRUE, FALSE, portMAX_DELAY);
+
+        if (modo == MOSTRANDO_HORA) {
+            if (alarma_sonando) {
+                ClockPosponerAlarma(reloj, TIEMPO_POSPONER);
+                DigitalOutputDesactivate(board->buzzer);
+                alarma_sonando = false;
+            } else {
+                DigitalOutputActivate(board->buzzer);
+            }
+        } else if (modo == AJUSTANDO_MINUTOS_ACTUAL) {
+            CambiarModo(AJUSTANDO_HORAS_ACTUAL);
+        } else if (modo == AJUSTANDO_HORAS_ACTUAL) {
+            ClockSetTime(reloj, entrada, sizeof(entrada));
+            CambiarModo(MOSTRANDO_HORA);
+        } else if (modo == AJUSTANDO_MINUTOS_ALARMA) {
+            CambiarModo(AJUSTANDO_HORAS_ALARMA);
+        } else if (modo == AJUSTANDO_HORAS_ALARMA) {
+            ClockSetAlarma(reloj, entrada, sizeof(entrada));
+            CambiarModo(MOSTRANDO_HORA);
+            ClockActivarAlarma(reloj);
+        }
+    }
+}
+
+static void CancelKeyTask(void * parameters) {
+
+    while (true) {
+        xEventGroupWaitBits(key_events, EVENT_KEY_CANCEL_ON, TRUE, FALSE, portMAX_DELAY);
+
+        if (modo == MOSTRANDO_HORA) {
+            if (alarma_sonando) {
+                DisplayToggleDot(board->display, 3);
+                DigitalOutputDesactivate(board->buzzer);
+                ClockCancelarAlarma(reloj);
+                alarma_sonando = false;
+            } else {
+                ClockDesactivarAlarma(reloj);
+                DigitalOutputDesactivate(board->buzzer);
+            }
+        } else if (ClockGetTime(reloj, entrada, sizeof(entrada)) && (modo != MOSTRANDO_HORA)) {
+            CambiarModo(MOSTRANDO_HORA);
+        } else {
+            CambiarModo(SIN_CONFIGURAR);
+        }
+    }
+}
+
+static void SetTimeTask(void * parameters) {
+
+    while (true) {
+
+        xEventGroupWaitBits(key_events, EVENT_KEY_SET_TIME_ON, TRUE, FALSE, portMAX_DELAY);
+        CambiarModo(AJUSTANDO_MINUTOS_ACTUAL);
+        ClockGetTime(reloj, entrada, sizeof(entrada));
+        DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+    }
+}
+
+static void SetAlarmTask(void * parameters) {
+    while (true) {
+        xEventGroupWaitBits(key_events, EVENT_KEY_SET_ALARM_ON, TRUE, FALSE, portMAX_DELAY);
+        CambiarModo(AJUSTANDO_MINUTOS_ALARMA);
+        ClockGetAlarma(reloj, entrada, sizeof(entrada));
+        DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+    }
+}
+
+static void IncrementTimeTask(void * parameters) {
+    while (true) {
+
+        xEventGroupWaitBits(key_events, EVENT_KEY_INCREMENT_ON, TRUE, FALSE, portMAX_DELAY);
+
+        if (modo == AJUSTANDO_MINUTOS_ACTUAL || modo == AJUSTANDO_MINUTOS_ALARMA) {
+            contador_configuracion = 1;
+            IncrementarBCD(&entrada[2], LIMITES_MINUTOS);
+        } else if (modo == AJUSTANDO_HORAS_ACTUAL || modo == AJUSTANDO_HORAS_ALARMA) {
+            contador_configuracion = 1;
+            IncrementarBCD(entrada, LIMITES_HORAS);
+        }
+        if ((modo == AJUSTANDO_MINUTOS_ACTUAL) || (modo == AJUSTANDO_HORAS_ACTUAL)) {
+            DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+        } else if (((modo == AJUSTANDO_MINUTOS_ALARMA) || (modo == AJUSTANDO_HORAS_ALARMA))) {
+            DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+        }
+    }
+}
+
+static void DecrementTimeTask(void * parameters) {
+    while (true) {
+        xEventGroupWaitBits(key_events, EVENT_KEY_DECREMENT_ON, TRUE, FALSE, portMAX_DELAY);
+
+        if (modo == AJUSTANDO_MINUTOS_ACTUAL || modo == AJUSTANDO_MINUTOS_ALARMA) {
+            contador_configuracion = 1;
+            DecrementarBCD(&entrada[2], LIMITES_MINUTOS);
+        } else if (modo == AJUSTANDO_HORAS_ACTUAL || modo == AJUSTANDO_HORAS_ALARMA) {
+            contador_configuracion = 1;
+            DecrementarBCD(entrada, LIMITES_HORAS);
+        }
+        if ((modo == AJUSTANDO_MINUTOS_ACTUAL) || (modo == AJUSTANDO_HORAS_ACTUAL)) {
+            DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+
+        } else if (((modo == AJUSTANDO_MINUTOS_ALARMA) || (modo == AJUSTANDO_HORAS_ALARMA))) {
+            DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+        }
+    }
+}
 /* === Public function implementation ========================================================= */
 
 int main(void) {
-    // uint8_t entrada[4];
 
     reloj = ClockCreate(TICS_POR_SEGUNDO / 50, ActivarAlarma);
     board = BoardCreate();
@@ -246,12 +375,22 @@ int main(void) {
 
     key_events = xEventGroupCreate();
 
-    xTaskCreate(KeyTask, "Teclas", 256, (void *)board, tskIDLE_PRIORITY + 1, NULL);
+    // Creación de las tareas
 
-    xTaskCreate(RefreshTask, "Refresh", 256, NULL, tskIDLE_PRIORITY + 2, NULL);
-    xTaskCreate(SystickTask, "Systick", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
+    xTaskCreate(RefreshTask, "Refresh", 256, NULL, tskIDLE_PRIORITY + 1, NULL);
+    xTaskCreate(SystickTask, "Systick", 256, NULL, tskIDLE_PRIORITY + 1, NULL);
+
+    xTaskCreate(KeyTask, "Teclas", 256, (void *)board, tskIDLE_PRIORITY + 2, NULL);
+
+    xTaskCreate(AcceptKeyTask, "Aceptar", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
+    xTaskCreate(CancelKeyTask, "Cancelar", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
+    xTaskCreate(SetTimeTask, "SetearTiempo", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
+    xTaskCreate(SetAlarmTask, "SetearAlarma", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
+    xTaskCreate(IncrementTimeTask, "IncrementarTiempo", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
+    xTaskCreate(DecrementTimeTask, "DecrementarTiempo", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
 
     vTaskStartScheduler();
+
     while (true) {
     }
     return 0;
