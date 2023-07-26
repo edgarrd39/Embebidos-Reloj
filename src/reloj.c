@@ -187,6 +187,19 @@ void ClockPosponerAlarma(clock_t reloj, uint8_t minutos) {
     if ((reloj->hora_alarma[3] + minutos) > 9) {
         reloj->hora_alarma[2] += 1;
         reloj->hora_alarma[3] -= minutos; // por ahora solo del 1 al 9
+        if (reloj->hora_alarma[2] > 5) {
+            reloj->hora_alarma[1] += 1;
+            reloj->hora_alarma[2] = 0;
+
+            if (reloj->hora_alarma[1] == 10) {
+                reloj->hora_alarma[0]++;
+                reloj->hora_alarma[1] = 0;
+            }
+            if (reloj->hora_alarma[0] == 2 && reloj->hora_alarma[1] == 4) {
+                reloj->hora_alarma[0] = 0;
+                reloj->hora_alarma[1] = 0;
+            }
+        }
     } else {
         reloj->hora_alarma[MINUTOS_UNIDADES] += minutos;
     }
