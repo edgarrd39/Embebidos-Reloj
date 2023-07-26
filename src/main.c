@@ -304,7 +304,7 @@ static void CancelKeyTask(void * parameters) {
     }
 }
 
-static void SetTimeTask(void * parameters) {
+static void SetTimeAlarmTask(void * parameters) {
 
     while (true) {
         vTaskDelay(pdMS_TO_TICKS(1));
@@ -426,8 +426,7 @@ int main(void) {
 
     xTaskCreate(AcceptKeyTask, "Aceptar", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
     xTaskCreate(CancelKeyTask, "Cancelar", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
-    xTaskCreate(SetTimeTask, "SetearTiempo", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
-    // xTaskCreate(SetAlarmTask, "SetearAlarma", 256, NULL, tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(SetTimeAlarmTask, "SetTiempoYAlarma", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
     xTaskCreate(IncrementTimeTask, "IncrementarTiempo", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
     xTaskCreate(DecrementTimeTask, "DecrementarTiempo", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
 
