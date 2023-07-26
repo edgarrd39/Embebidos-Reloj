@@ -85,6 +85,11 @@ typedef enum {
     AJUSTANDO_HORAS_ALARMA,
 } modo_t;
 
+typedef struct config_time_s {
+    uint8_t event;
+    uint32_t tiempo;
+} * config_time_t;
+
 /* === Private variable declarations =========================================================== */
 
 /* === Private function declarations =========================================================== */
@@ -103,11 +108,11 @@ static bool alarma_sonando = false;
 
 static uint8_t entrada[4];
 
-static uint16_t contador_setear_tiempo = 0;
+static uint16_t contador_setear_tiempo;
 
-static uint16_t contador_setear_alarma = 0;
+static uint16_t contador_setear_alarma;
 
-static uint16_t contador_configuracion = 0;
+static uint16_t contador_configuracion;
 
 /* === Private variable definitions ============================================================ */
 
@@ -307,20 +312,34 @@ static void CancelKeyTask(void * parameters) {
 static void SetTimeTask(void * parameters) {
 
     while (true) {
+        vTaskDelay(pdMS_TO_TICKS(1));
+        if (DigitalInputGetState(board->set_time) && contador_setear_tiempo > 0) {
+            contador_setear_tiempo++;
+        }
+        if (contador_setear_tiempo > 3000) {
+            contador_setear_tiempo = 0;
 
-        xEventGroupWaitBits(key_events, EVENT_KEY_SET_TIME_ON, TRUE, FALSE, portMAX_DELAY);
-        CambiarModo(AJUSTANDO_MINUTOS_ACTUAL);
-        ClockGetTime(reloj, entrada, sizeof(entrada));
-        DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+            CambiarModo(AJUSTANDO_MINUTOS_ACTUAL);
+            ClockGetTime(reloj, entrada, sizeof(entrada));
+            DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+        }
     }
 }
 
 static void SetAlarmTask(void * parameters) {
+
     while (true) {
-        xEventGroupWaitBits(key_events, EVENT_KEY_SET_ALARM_ON, TRUE, FALSE, portMAX_DELAY);
-        CambiarModo(AJUSTANDO_MINUTOS_ALARMA);
-        ClockGetAlarma(reloj, entrada, sizeof(entrada));
-        DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+        vTaskDelay(pdMS_TO_TICKS(1));
+
+        if (DigitalInputGetState(board->set_alarm) && contador_setear_alarma > 0) {
+            contador_setear_alarma++;
+        }
+        if (contador_setear_alarma > 3000) {
+            contador_setear_alarma = 0;
+            CambiarModo(AJUSTANDO_MINUTOS_ALARMA);
+            ClockGetAlarma(reloj, entrada, sizeof(entrada));
+            DisplayWriteBCD(board->display, entrada, sizeof(entrada));
+        }
     }
 }
 
@@ -363,6 +382,23 @@ static void DecrementTimeTask(void * parameters) {
         }
     }
 }
+
+static void CountSetTimeTask(void * parameters) {
+    while (true) {
+        xEventGroupWaitBits(key_events, EVENT_KEY_SET_TIME_ON, TRUE, FALSE, portMAX_DELAY);
+        contador_setear_tiempo = 1;
+        vTaskDelay(pdMS_TO_TICKS(150));
+    }
+}
+
+static void CountSetAlarmTask(void * parameters) {
+    while (true) {
+        xEventGroupWaitBits(key_events, EVENT_KEY_SET_ALARM_ON, TRUE, FALSE, portMAX_DELAY);
+        contador_setear_alarma = 1;
+        vTaskDelay(pdMS_TO_TICKS(150));
+    }
+}
+
 /* === Public function implementation ========================================================= */
 
 int main(void) {
@@ -384,10 +420,13 @@ int main(void) {
 
     xTaskCreate(AcceptKeyTask, "Aceptar", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
     xTaskCreate(CancelKeyTask, "Cancelar", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
-    xTaskCreate(SetTimeTask, "SetearTiempo", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
-    xTaskCreate(SetAlarmTask, "SetearAlarma", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
+    xTaskCreate(SetTimeTask, "SetearTiempo", 256, NULL, tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(SetAlarmTask, "SetearAlarma", 256, NULL, tskIDLE_PRIORITY + 2, NULL);
     xTaskCreate(IncrementTimeTask, "IncrementarTiempo", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
     xTaskCreate(DecrementTimeTask, "DecrementarTiempo", 256, NULL, tskIDLE_PRIORITY + 3, NULL);
+
+    xTaskCreate(CountSetTimeTask, "ContadorTiempoHora", 256, NULL, tskIDLE_PRIORITY + 2, NULL);
+    xTaskCreate(CountSetAlarmTask, "ContadorTiempoAlarma", 256, NULL, tskIDLE_PRIORITY + 2, NULL);
 
     vTaskStartScheduler();
 
